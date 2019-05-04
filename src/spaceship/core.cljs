@@ -42,7 +42,7 @@
          :on-mouse-move (fn [ev]
                           (swap! state #(update-vy % ev)))
          :on-mouse-up #(swap! state assoc :vy 0 :moving false)}
-   [:image {:href "/images/plane.svg"
+   [:image {:href "images/plane.svg"
             :x (/ width 4)
             :y (- (:y (rum/react state)) (/ plane-height 2))
             :width plane-width
