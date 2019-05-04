@@ -9,8 +9,8 @@
 (defn get-app-element []
   (gdom/getElement "app"))
 
-(def width 200)
-(def height 400)
+(def width 300)
+(def height 600)
 (def plane-width 50)
 (def plane-height 50)
 (def speed 1)
@@ -19,10 +19,17 @@
          :moving false
          :vy 0}))
 
+(defn clamp [llim x rlim]
+  (max llim
+       (min x rlim)))
+
 (defn next-frame [state]
-  (update state :y + (if (:moving state)
-                       (:vy state)
-                       0)))
+  (assoc state :y (clamp (/ plane-height 2)
+                         (+ (:y state)
+                            (if (:moving state)
+                              (:vy state)
+                              0))
+                         (- height (/ plane-height 2)))))
 
 (defn update-vy [state mouse-event]
   (assoc state :vy
@@ -41,7 +48,22 @@
                           (swap! state #(update-vy % ev)))
          :on-mouse-move (fn [ev]
                           (swap! state #(update-vy % ev)))
-         :on-mouse-up #(swap! state assoc :vy 0 :moving false)}
+         :on-mouse-up #(swap! state assoc :vy 0 :moving false)
+         :on-touch-start (fn [ev]
+                            (swap! state assoc :moving true)
+                            (swap! state #(update-vy % (aget (.-changedTouches ev) 0))))
+         :on-touch-move (fn [ev]
+                          (println "touchmove")
+                          (swap! state #(update-vy % (aget (.-changedTouches ev) 0))))
+         :on-touch-end #(swap! state assoc :vy 0 :moving false)
+         }
+   [:rect {:x 0
+           :y 0
+           :width width
+           :height height
+           :fill "white"
+           :stroke "black"
+           :stroke-width "2"}]
    [:image {:href "images/plane.svg"
             :x (/ width 4)
             :y (- (:y (rum/react state)) (/ plane-height 2))
